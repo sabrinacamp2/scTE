@@ -53,7 +53,8 @@ def glload(filename):
 
     try:
         cons = len(newl._conditions) # expression-like object
-        config.log.info("Loaded '%s' binary file with %s items, %s conditions" % (filename, len(newl), cons))
+        # config.log.info("Loaded '%s' binary file with %s items, %s conditions" % (filename, len(newl), cons))
     except AttributeError:
-        config.log.info("Loaded '%s' binary file with %s items" % (filename, len(newl)))
+        pass
+        # config.log.info("Loaded '%s' binary file with %s items" % (filename, len(newl)))
     return(newl)

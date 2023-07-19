@@ -83,7 +83,6 @@ def library(args):
     return
 
 def atacBam2bed(filename, out, CB, UMI, noDup, num_threads):
-
     sample=filename.split('/')[-1].replace('.bam','')
 
     if sys.platform == 'darwin': # Mac OSX has BSD sed
@@ -99,10 +98,10 @@ def atacBam2bed(filename, out, CB, UMI, noDup, num_threads):
             os.system('bamToBed -i %s -bedpe | awk -F ["\t":] \'{OFS="\t"}{print $1,$2,$6,"%s"}\' | sed %s \'s/^chr//g\' | gzip -c > %s_scTEtmp/o1/%s.bed.gz' % (filename, sample,switch, out, out))
     else:
         if noDup:
-            os.system('bamToBed -i %s -bedpe | awk -F ["\t":] \'{OFS="\t"}{print $1,$2,$6,$7}\'  | sed %s \'s/^chr//g\' | awk \'!x[$0]++\' | gzip -c > %s_scTEtmp/o1/%s.bed.gz' % (filename, switch, out, out))
+            os.system('bamToBed -i %s -bedpe | awk -F "\t" \'{OFS="\t"}{split($7, cb, "@"); print $1,$2,$6,cb[2]}\'  | sed %s \'s/^chr//g\' | awk \'!x[$0]++\' | gzip -c > %s_scTEtmp/o1/%s.bed.gz' % (filename, switch, out, out))
 #             os.system('bamToBed -i %s  -bedpe | awk -F ["\t":] \'{OFS="\t"}{print $1,$2,$3,$4}\'  | sed %s \'s/^chr//g\' | awk \'!x[$0]++\' | gzip -c > %s_scTEtmp/o1/%s.bed.gz' % (filename, switch, out, out))
         else:
-            os.system('bamToBed -i %s -bedpe | awk -F ["\t":] \'{OFS="\t"}{print $1,$2,$6,$7}\'  | sed %s \'s/^chr//g\' | gzip -c > %s_scTEtmp/o1/%s.bed.gz' % (filename, switch, out, out))
+            os.system('bamToBed -i %s -bedpe | awk -F "\t" \'{OFS="\t"}{split($7, cb, "@"); print $1,$2,$6,cb[2]}\'  | sed %s \'s/^chr//g\' | gzip -c > %s_scTEtmp/o1/%s.bed.gz' % (filename, switch, out, out))
 
 def para_atacBam2bed(filename, CB, out, noDup):
     if not os.path.exists('%ss_scTEtmp/o0'%out):
@@ -227,6 +226,55 @@ def build_barcode_dict(barcode_filename, save_whitelist=False, expected_whitelis
     oh.close()
 
     return barcode_lookup, expected_whitelist, tmpfilename
+
+def parse_cbc(infile, outfile, logger):
+    op = outfile
+    inbam = pysam.AlignmentFile(infile, 'rb')
+    outfile = pysam.AlignmentFile(outfile, 'wb', template=inbam)
+
+    not_paired = 0 # unpaired ATAC
+    no_matching_barcode = 0 # No matching read:barcode pair
+    pairs_too_far_apart = 0
+
+
+    for idx, read in enumerate(inbam):
+        if (idx+1) % 10000000 == 0:
+            logger.info('Processed: {:,} reads'.format(idx+1))
+            #break
+
+        if not read.is_paired:
+            not_paired += 1
+            continue
+
+        if read.query_alignment_length > 1000:
+            pairs_too_far_apart += 1
+            continue
+
+        # UMI iterator
+        #try:
+        #    umi = umi_iterator.__next__()
+        #except StopIteration:
+        #    umi_iterator = library(["ACGT"] * 14)
+
+        # Add the barcode:
+        # See if the read is in the lookup:
+        if read.has_tag('CB'):
+            read.query_name = read.query_name + '@' + read.get_tag('CB')
+            outfile.write(read)
+
+        else:
+            no_matching_barcode += 1
+            continue
+
+    inbam.close()
+    outfile.close()
+
+    logger.info('Processed {:,} reads from the BAM'.format(idx+1))
+    logger.info('{:,} reads were unpaired'.format(not_paired+1))
+    logger.info('{:,} read pairs were too far apart'.format(pairs_too_far_apart+1))
+    logger.info('Matched {0:,} ({1:.1f}%) reads to a barcode'.format(idx - no_matching_barcode, (idx - no_matching_barcode) / idx * 100.0))
+    logger.info('Save BAM ouput file: {0}'.format(op))
+    return op
 
 def parse_bam(infile, barcode_lookup, outfile, barcode_corrector, logger):
     """

@@ -280,7 +280,7 @@ def splitAllChrs(chromosome_list, filename, genenumber, countnumber, UMI=True):
 def filterCRs(filename, genenumber, countnumber):
     CRs = defaultdict(int)
     for f in sorted(glob.glob('%s_scTEtmp/o2/%s*.count.gz'%(filename,filename))):
-        logging.info('Reading %s '%os.path.split(f)[1])
+        # logging.info('Reading %s '%os.path.split(f)[1])
         o = gzip.open(f,'rt')
         for l in o:
             t = l.strip().split('\t')
@@ -294,7 +294,7 @@ def filterCRs(filename, genenumber, countnumber):
     
     logging.info('Before filter %s'%len(CRs))
     CRs = {k: v for k, v in CRs.items() if v >= mincounts}
-    logging.info('Aefore filter %s'%len(CRs))
+    logging.info('After filter %s'%len(CRs))
 
     return list(CRs.keys())
 
@@ -385,8 +385,8 @@ def align(chr, filename, all_annot, glannot, whitelist): #CB
     for line in oh:
         t = line.strip().split('\t')
         barcode = t[3]
-        if barcode not in whitelist:
-            continue
+        # if barcode not in whitelist:
+            # continue
         if barcode not in res:
             res[barcode] = defaultdict(int)
 
