@@ -139,7 +139,7 @@ def filter_bed(filename, length_threshold = 1000):
     """
     input_filepath = '%s_scTEtmp/o1/%s.bed.gz'%(filename, filename)
     outfile = '%s_scTEtmp/o1/corr_%s.bed.gz'%(filename, filename)
-    with gzip.open(input_filepath, 'rt') as infile, gzip.open(output_filepath, 'wt') as outfile:
+    with gzip.open(input_filepath, 'rt') as infile, gzip.open(outfile, 'wt') as outfile:
         for line in infile:
             parts = line.strip().split('\t')
             start_position = int(parts[1])
