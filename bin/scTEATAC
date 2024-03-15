@@ -41,7 +41,7 @@ except ImportError:
 
 sys.path.append(os.path.join(os.path.split(sys.argv[0])[0], '../'))
 # from scTE.scatacseq import build_barcode_dict, parse_bam, load_expected_whitelist
-from scTE.scatacseq import atacBam2bed,para_atacBam2bed, parse_cbc
+from scTE.scatacseq import atacBam2bed,para_atacBam2bed, parse_cbc, filter_bed
 from scTE.base import *
 
 # Command-line options;
@@ -166,6 +166,8 @@ def main():
         os.system('gunzip -c -f %s_scTEtmp/o0/*.bed.gz | gzip > %s_scTEtmp/o1/%s.bed.gz' % (outname,outname,outname))
     else:
         atacBam2bed(args.input[0], outname, CB=args.CB, UMI=args.UMI, noDup=args.noDup, num_threads=args.thread)
+    info("Filtering BED file ... %s \n"%(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    filter_bed(outname)
     info("Done BAM/SAM files processing ...%s \n"%(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
     
     info("Splitting ...%s"%(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
