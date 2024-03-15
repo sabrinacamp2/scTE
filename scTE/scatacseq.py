@@ -126,6 +126,32 @@ def para_atacBam2bed(filename, CB, out, noDup):
         else:
             os.system('bamToBed -i %s -bedpe | awk -F ["\t":] \'{OFS="\t"}{print $1,$2,$6,$7}\' | sed %s \'s/^chr//g\' | gzip -c > %s_scTEtmp/o0/%s.bed.gz' % (filename, switch, out, out))
 
+def filter_bed(filename, length_threshold = 1000):
+    """
+    Reads a gzipped BED file line by line and filters out rows based on the criteria:
+    1. The start position should not be -1.
+    2. The fragment length (end-start) should be less than or equal to 1000.
+    The filtered BED file is then saved to a new location.
+    
+    Args:
+    input_filepath (str): Path to the input gzipped BED file.
+    output_filepath (str): Path to save the filtered gzipped BED file.
+    """
+    input_filepath = '%s_scTEtmp/o1/%s.bed.gz'%(filename, filename)
+    outfile = '%s_scTEtmp/o1/corr_%s.bed.gz'%(filename, filename)
+    with gzip.open(input_filepath, 'rt') as infile, gzip.open(output_filepath, 'wt') as outfile:
+        for line in infile:
+            parts = line.strip().split('\t')
+            start_position = int(parts[1])
+            end_position = int(parts[2])
+            fragment_length = end_position - start_position
+            
+            if start_position != -1 and fragment_length <= length_threshold:
+                outfile.write(line)
+                
+    os.system(f'rm {input_filepath}')
+    os.system(f'mv {outfile} {input_filepath}')
+    
 def load_expected_whitelist(filename, logger):
     """
     **Purpose**
