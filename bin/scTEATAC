@@ -78,7 +78,10 @@ def prepare_parser():
     
     optional.add_argument('--hdf5', dest='hdf5', type=str, nargs='?', default='False', choices=['True','False'],
                         help='Save the output as .h5ad formatted file instead of csv file. Default: False')
-                        
+
+    optional.add_argument('--expect-cells', dest='cellnumber',metavar='INT', type=int,  default=10000,
+                        help='Expected number of cells. Default: 10000')
+
     required = parser.add_argument_group('required arguments')
 
     required.add_argument('-i','--input', dest='input', type=str, nargs='+', required=True,
