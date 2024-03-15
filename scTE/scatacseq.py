@@ -126,20 +126,21 @@ def para_atacBam2bed(filename, CB, out, noDup):
         else:
             os.system('bamToBed -i %s -bedpe | awk -F ["\t":] \'{OFS="\t"}{print $1,$2,$6,$7}\' | sed %s \'s/^chr//g\' | gzip -c > %s_scTEtmp/o0/%s.bed.gz' % (filename, switch, out, out))
 
-def filter_bed(filename, length_threshold = 1000):
+def filter_bed(filename, length_threshold=1000):
     """
     Reads a gzipped BED file line by line and filters out rows based on the criteria:
     1. The start position should not be -1.
-    2. The fragment length (end-start) should be less than or equal to 1000.
-    The filtered BED file is then saved to a new location.
+    2. The fragment length (end-start) should be less than or equal to length_threshold.
+    The filtered BED file is then saved over the original file.
     
     Args:
-    input_filepath (str): Path to the input gzipped BED file.
-    output_filepath (str): Path to save the filtered gzipped BED file.
+    filename (str): The base name for the BED file to process.
+    length_threshold (int, optional): The maximum allowed fragment length. Defaults to 1000.
     """
-    input_filepath = '%s_scTEtmp/o1/%s.bed.gz'%(filename, filename)
-    outfile = '%s_scTEtmp/o1/corr_%s.bed.gz'%(filename, filename)
-    with gzip.open(input_filepath, 'rt') as infile, gzip.open(outfile, 'wt') as outfile:
+    input_filepath = f'{filename}_scTEtmp/o1/{filename}.bed.gz'
+    output_filepath = f'{filename}_scTEtmp/o1/corr_{filename}.bed.gz'
+    
+    with gzip.open(input_filepath, 'rt') as infile, gzip.open(output_filepath, 'wt') as temp_outfile:
         for line in infile:
             parts = line.strip().split('\t')
             start_position = int(parts[1])
@@ -147,10 +148,11 @@ def filter_bed(filename, length_threshold = 1000):
             fragment_length = end_position - start_position
             
             if start_position != -1 and fragment_length <= length_threshold:
-                outfile.write(line)
-                
-    os.system(f'rm {input_filepath}')
-    os.system(f'mv {outfile} {input_filepath}')
+                temp_outfile.write(line)
+    
+    # Remove the original file and replace it with the filtered version
+    os.remove(input_filepath)
+    os.rename(output_filepath, input_filepath)
     
 def load_expected_whitelist(filename, logger):
     """
