@@ -28,7 +28,7 @@ setup(name='scTE',
           'MacOS'
         ],
         install_requires=[
-          'argparse','scipy','pandas',
+          'argparse','scipy==1.13.1','pandas',
           'numpy','anndata',
         ],
         include_package_data=True,
