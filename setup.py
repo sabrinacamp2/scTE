@@ -29,7 +29,7 @@ setup(name='scTE',
         ],
         install_requires=[
           'argparse','scipy==1.13.1','pandas',
-          'numpy','anndata',
+          'numpy','anndata==0.10.9',
         ],
         include_package_data=True,
         zip_safe=False,
