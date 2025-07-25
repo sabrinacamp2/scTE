@@ -157,7 +157,7 @@ def main():
         os.system('mkdir -p %s_scTEtmp/o1'%outname)
         
 
-    args.input[0] = parse_cbc(args.input[0], '%s_scTEtmp/withname.bam'%outname, logger)
+    #args.input[0] = parse_cbc(args.input[0], '%s_scTEtmp/withname.bam'%outname, logger)
 
 
     if len(args.input) > 1:
