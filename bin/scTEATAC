@@ -62,7 +62,7 @@ def prepare_parser():
                         help='Minimum number of counts required for a cell to pass filtering. Default: 2*min_genes')
 
     optional.add_argument('-CB', dest='CB', type=str, nargs='?', default='CB', choices=['CB', 'CR', 'False'],
-                        help='Set to false to ignore for cell barcodes, Default: False')
+                        help='Set to false to ignore for cell barcodes, Default: CB')
 
     optional.add_argument('-UMI', dest='UMI', type=str, nargs='?', default='False', choices=['True','False'],
                         help='Set to false to ignore for UMI. Default: False')
@@ -123,8 +123,8 @@ def main():
 
     logger = parser.log
     
-    # if args.CB == 'True': args.CB = True
-    # else: args.CB = False
+    args.CB = args.CB if args.CB != 'False' else False
+
     if args.hdf5 == 'True': args.hdf5 = True
     else: args.hdf5 = False
     if args.noDup == 'True': args.noDup = True
